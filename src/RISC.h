@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <cstdio>
+#include <cstring>
 
 // TODO: Change these sizes to actual size
 #define RAM_SIZE 1UL << 12
@@ -111,6 +112,8 @@ public:
 	uint16_t dataBus;
 	uint32_t controlSignals;
 	uint32_t flags;
+
+	void copyRAM(uint8_t* src);
 
 	RISC();
 	~RISC();

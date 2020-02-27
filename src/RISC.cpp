@@ -4,31 +4,43 @@ RISC::RISC() {
 	RAM = new uint8_t[RAM_SIZE];
 	FLASH = new uint8_t[FLASH_SIZE];
 
-	RAM[(0x40 << 1) + 0] = 0b10000001;
-	RAM[(0x40 << 1) + 1] = 0b01111110;
+	memset(RAM, 0, sizeof(uint8_t) * RAM_SIZE);
+	memset(FLASH, 0, sizeof(uint8_t) * FLASH_SIZE);
 
-	RAM[0] = 0x40;
-	RAM[1] = 0b00110000;
+	// RAM[(0x40 << 1) + 0] = 0b10000001;
+	// RAM[(0x40 << 1) + 1] = 0b01111110;
 
-	RAM[2] = 0b00000000;
-	RAM[3] = 0b00100001;
+	// RAM[0] = 0x40;
+	// RAM[1] = 0b00110000;
 
-	RAM[4] = 0x20;
-	RAM[5] = 0b00110010;
+	// RAM[2] = 0b00000000;
+	// RAM[3] = 0b00100001;
 
-	RAM[6] = 0b00000010;
-	RAM[7] = 0b01010001;
+	// RAM[4] = 0x20;
+	// RAM[5] = 0b00110010;
+
+	// RAM[6] = 0b00000010;
+	// RAM[7] = 0b01010001;
 
 	dataBus = 0x0;
 	controlSignals = 0x0;
 
+	memAddrReg = 0x0;
+	memLowerBuf = 0x0;
+	memset(rgs, 0, sizeof(uint16_t) * 8);
+
 	prgrmCtr = 0x0;
+	instrReg = 0x0;
 	instrCtr = IC_5;
 }
 
 RISC::~RISC() {
 	delete[] RAM;
 	delete[] FLASH;
+}
+
+void RISC::copyRAM(uint8_t* src) {
+	memcpy(RAM, src, sizeof(uint8_t) * RAM_SIZE);
 }
 
 void RISC::setCtrlSig(CtrlSig sig, bool bit) {
