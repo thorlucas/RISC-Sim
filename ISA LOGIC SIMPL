@@ -1,0 +1,33 @@
+A 	8
+B 	~8
+C 	4
+D 	~4
+E 	2
+F 	~2
+G 	1
+H 	~1
+I 	F AND H
+J 	B AND D
+K 	J AND F AND G
+L 	J AND G
+M 	E AND H
+N 	B AND C
+O 	B AND (D AND M OR C AND F)
+P 	C AND E OR A
+
+XO: 	A OR C	 								AND I2
+AX:		P 		 								AND I2
+AY: 	P 		 								AND I3
+YO: 	C AND (A OR I) 							AND I3
+		K										AND I2 *
+XI: 	C AND (A OR E) 							AND I4
+		L 										AND I2
+		K 										AND I3 *
+IR:		J AND I 								AND I2
+		L										AND I3
+		O 										AND I4
+IO:		J AND E 								AND I2
+		N AND (E OR G) OR A AND D 				AND I3
+MI: 	O 										AND I2
+RO:		J AND M 								AND I3
+RI:		N AND F									AND I3

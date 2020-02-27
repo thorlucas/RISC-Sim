@@ -1,0 +1,148 @@
+8 registers — 3 bits per 
+
+4-5 bit opcodes?
+
+RR types
+oooo-aaa-----bbb
+
+RI types
+oooo-aaaiiiiiiii
+
+I types
+oooo----iiiiiiii
+
+Extra space:
+- Could have 5 bit instructions (32)
+- Could make instructions easier for logic
+- Could make registers 4 bits (special registers)
+
+16 bit instructions
+
+NOP
+
+LOD		RR 		Loads into register X from memory address Y
+LDI 	RI 		Loads into register X an immediate value
+
+MOV 	RR 		Moves data from rY to rX
+
+STI 	RI 		Stores an immediate into the address stored in rA
+STO 	RR 		Stores the contents of rB into the memory address in rA
+
+ADD 	RR 		Adds register A to B and stores result in A
+ADI 	RI 		Adds register A to the immediate and stores in A
+
+SUB 	RR 		Subtracts rB from rA and stores in rA
+SBI 	RI 		Subtracts immediate from rA and stores in rA
+
+XOR 	RR 		XORs rA and rB and stores in rA
+NND		RR 		NANDs rA and rB and stores in rA
+
+JPZ 	RI 		Jumps to address immediate + rA if the zero bit is set
+JPC 	RI 		Jumps to address immediate + rA if the carry bit is set
+JMP 	RI 		Jumps to address immediate + rA unconditionally
+
+
+CO 	Program Counter Out
+CI 	Counter In
+CE 	Counter Enable (add one)
+
+MI 	Memory Address Regster In
+RO 	RAM Out
+RI 	RAM In
+
+II 	Instruction Register In
+IO 	Lower 8 bits of instruction register out
+IR 	Reset instruction counter
+
+XI 	X register in (first register in RR type and only in RI type)
+XO
+YI
+YO
+
+AX 	ALU X register in
+AY 	ALU Y register in
+AD 	ALU add X and Y output enable
+AU 	ALU subtract X - Y output enable
+LX 	ALU logic XOR X and Y output enable
+LN 	ALU nand
+
+
+All instructions preceded by:
+
+I0		I1			I3
+CO|MI	ROL|CO 		RO|II
+
+OP		I3			I4			I5
+--------------------------------------
+NOP:	HLT
+MOV:	YO|XI|HLT	
+LOD: 	YO|MI 		ROL 		RO|XI|HLT
+LDI: 	IO|XI|HLT
+
+STI: 	IO|MI 		X
+STO: 	YO|MI 		XO|RI		RIL|HLT
+
+ADI: 	XO|AX 		IO|AY 		AD|XI
+SBI: 	XO|AX 		IO|AY 		AU|XI
+
+JPZ:	XO|AX|*		IO|AY		AD|CI
+JPC: 	XO|AX|**	IO|AY		AD|CI
+JMP: 	XO|AX		IO|AY		AD|CI
+
+ADD: 	XO|AX 		YO|AY		AD|XI
+SUB: 	XO|AX 		YO|AY 		AU|XI
+XOR:  	XO|AX 		YO|AY 		LX|XI
+NND: 	XO|AX 		YO|AY 		LN|XI
+
+*	IR if not zero flag is set
+**	IR if not carry flag is set
+
+Only four instructions dont start with XO, so if either left most bits are set do XO on first instruction
+AX and AY have same conditions
+
+8421
+----
+0000	NOP
+0001	MOV 
+0010	LOD
+0011	LDI
+
+0100	STI
+0101	STO
+
+0110	ADI SBI
+0111	ADI SBI
+
+1000	JPZ JPC JMP
+1001	JPZ JPC JMP
+1010	JPZ JPC JMP
+1011	JPZ JPC JMP
+
+1100	ADD SUB XOR NND
+1101	ADD SUB XOR NND
+1110	ADD SUB XOR NND
+1111	ADD SUB XOR NND
+
+XO: 	8 OR 4	 								AND I2
+AX:		4 AND 2 OR 8	 						AND I2
+AY: 	4 AND 2 OR 8	 						AND I3
+YO: 	4 AND (8 OR ~2 AND ~1) 					AND I3
+		~8 AND ~4 AND ~2 AND 1					AND I2 *
+XI: 	4 AND (8 OR 2) 							AND I4
+		~8 AND ~4 AND 1 						AND I2
+		~8 AND ~4 AND ~2 AND 1 					AND I3 *
+IR:		~8 AND ~4 AND ~2 AND ~1 				AND I2
+		~8 AND ~4 AND 1							AND I3
+		~8 AND (~4 AND 2 AND ~1 OR 4 AND ~2) 	AND I4
+IO:		~8 AND ~4 AND 2 						AND I2
+		~8 AND 4 AND (2 OR 1) OR 8 AND ~4 		AND I3
+MI: 	~8 AND (~4 AND 2 AND ~1 OR 4 AND ~2) 	AND I2
+RO:		~8 AND ~4 AND 2 AND ~1 					AND I3
+RI:		~8 AND 4 AND ~2							AND I3
+
+
+* Could be improved at the sacrifice of subtick by moving the XI instruction to I3 in MOV and LDI
+
+
+
+IO: 	( (8 NOR 4) AND 2 AND I2 ) OR ()

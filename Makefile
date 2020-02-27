@@ -8,7 +8,7 @@ CLFAGS := -g --std=c++11 -D _DEBUG
 SRCEXT := cpp
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJECTS := $(patsubst $(SRCDIR)/%, $(BUILDDIR)/%, $(SOURCES:.$(SRCEXT)=.o))
-LIB := -L lib
+LIB := -L lib -lcurses
 INC := -I include
 INCLUDES := $(shell find include -type f -name *.h)
 
