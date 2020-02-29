@@ -19,10 +19,13 @@ enum CtrlSig : uint32_t {
 	CS_RI 	= 1UL << 7 	, /**< Inputs the upper byte from bus and lower byte from buffer. */
 	CS_II 	= 1UL << 8	, /**< Reads to instruction register from bus. */
 	CS_IO 	= 1UL << 9 	, /**< Writes the lower 8 bits of instruction register (imm) to bus. */
-	CS_XI 	= 1UL << 10 	, /**< Reads into X register from the bus. */
+	CS_XI 	= 1UL << 10 , /**< Reads into X register from the bus. */
 	CS_XO 	= 1UL << 11 ,
 	CS_YI 	= 1UL << 12 ,
 	CS_YO	= 1UL << 13	,
+	CS_AX 	= 1UL << 14	,
+	CS_AY 	= 1UL << 15	,
+	CS_AD 	= 1UL << 16	,
 
 	CS_HLT 	= 1UL << 30	, /**< Ends the current instruction cycle early. */
 	CS_END	= 1UL << 31	,
@@ -101,6 +104,10 @@ protected:
 	uint16_t rgs[8]; /**< The eight registers. */
 	uint16_t regInternalOutBus;
 	uint16_t regInternalInBus;
+
+	uint16_t rgx;
+	uint16_t rgy;
+	uint16_t alu;
 
 	void clockFallingEdge();
 	void clockRisingEdge();

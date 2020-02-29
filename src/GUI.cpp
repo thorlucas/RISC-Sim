@@ -118,7 +118,12 @@ GUI::GUI(RISC& risc) : risc(risc) {
 				(risc.controlSignals & CS_YO && risc.rr.rgy == j))
 				attron(COLOR_PAIR(OUT_PAIR));
 
-			mvprintw(y + 1 + j, x, "RG%c: ", 'A' + j);
+			if (j == 0) {
+				mvprintw(y + 1 + j, x, "RG0: ");
+			} else {
+				mvprintw(y + 1 + j, x, "RG%c: ", 'A' + j - 1);
+			}
+			
 			for (int i = 15; i >= 0; --i) {
 				addch((risc.rgs[j] & (1UL << i)) ? '1' : '0');
 			}
@@ -127,9 +132,33 @@ GUI::GUI(RISC& risc) : risc(risc) {
 			if (out) 	attroff(COLOR_PAIR(OUT_PAIR));
 		}
 
-		return 9;
+		return 10;
 	};
 	modules.push_back(regsMod);
+
+	Module* rgxMod = new Module;
+	rgxMod->dataWidth = Module::WIDTH_16;
+	rgxMod->data16 = &risc.rgx;
+	rgxMod->signalIn = CS_AX;
+	rgxMod->signalSpecial = CS_AD;
+	rgxMod->label = "RGX";
+	modules.push_back(rgxMod);
+
+	Module* rgyMod = new Module;
+	rgyMod->dataWidth = Module::WIDTH_16;
+	rgyMod->data16 = &risc.rgy;
+	rgyMod->signalIn = CS_AY;
+	rgyMod->signalSpecial = CS_AD;
+	rgyMod->label = "RGY";
+	modules.push_back(rgyMod);
+
+	Module* aluMod = new Module;
+	aluMod->dataWidth = Module::WIDTH_16;
+	aluMod->data16 = &risc.alu;
+	aluMod->signalOut = CS_AD;
+	aluMod->signalSpecial = CS_AY | CS_AX;
+	aluMod->label = "ALU";
+	modules.push_back(aluMod);
 
 	risc.clock();
 }

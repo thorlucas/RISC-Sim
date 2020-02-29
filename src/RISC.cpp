@@ -7,21 +7,6 @@ RISC::RISC() {
 	memset(RAM, 0, sizeof(uint8_t) * RAM_SIZE);
 	memset(FLASH, 0, sizeof(uint8_t) * FLASH_SIZE);
 
-	// RAM[(0x40 << 1) + 0] = 0b10000001;
-	// RAM[(0x40 << 1) + 1] = 0b01111110;
-
-	// RAM[0] = 0x40;
-	// RAM[1] = 0b00110000;
-
-	// RAM[2] = 0b00000000;
-	// RAM[3] = 0b00100001;
-
-	// RAM[4] = 0x20;
-	// RAM[5] = 0b00110010;
-
-	// RAM[6] = 0b00000010;
-	// RAM[7] = 0b01010001;
-
 	dataBus = 0x0;
 	controlSignals = 0x0;
 
@@ -90,61 +75,86 @@ void RISC::clockFallingEdge() {
 	// LOD
 	// LDI
 	// STO
+	// ADD
+	// JMP
 
 	if (instrCtr == IC_3) {
 		setCtrlSig(CS_HLT	, ~i8 & ~i4 & ~i2 & ~i1 	);
 		setCtrlSig(CS_YO 	, ~i8 & (
 							      ( ~i2 &  i1 )         | 
-							      ( ~i4 &  i2 & ~i1) )	);
+							      ( ~i4 &  i2 & ~i1 ) )	);
 		setCtrlSig(CS_MI	, ~i8 & (
 							       (~i4 &  i2 & ~i1) 	|
 							       ( i4 & ~i2 &  i1) )	);
 		setCtrlSig(CS_IO 	, ~i8 & ~i4 &  i2 &  i1 	);
 		setCtrlSig(CS_XI 	, ~i8 & ~i4 &        i1 	);
 		setCtrlSig(CS_HLT 	, ~i8 & ~i4 &        i1 	);
+		setCtrlSig(CS_XO 	,( i8 &  i4 & ~i2 & ~i1 ) 	|
+							 ( i8 & ~i4 & ~i2 & ~i1 )	);
+		setCtrlSig(CS_AX 	,( i8 &  i4 & ~i2 & ~i1 )	|
+							 ( i8 & ~i4 & ~i2 & ~i1 )	);
 	}
 
 	if (instrCtr == IC_4) {
 		setCtrlSig(CS_ROL	, ~i8 & ~i4 &  i2 & ~i1 	);
 		setCtrlSig(CS_XO 	, ~i8 &  i4 & ~i2 &  i1 	);
 		setCtrlSig(CS_RI 	, ~i8 &  i4 & ~i2 &  i1 	);
+		setCtrlSig(CS_YO 	,  i8 &  i4 & ~i2 & ~i1 	);
+		setCtrlSig(CS_AY 	,( i8 &  i4 & ~i2 & ~i1 )	|
+							 ( i8 & ~i4 & ~i2 & ~i1 )	);
+		setCtrlSig(CS_IO 	,( i8 & ~i4 & ~i2 & ~i1 )	);
 	}
 
 	if (instrCtr == IC_5) {
 		setCtrlSig(CS_RO	, ~i8 & ~i4 &  i2 & ~i1 	);
-		setCtrlSig(CS_XI	, ~i8 & ~i4 &  i2 & ~i1 	);
-		setCtrlSig(CS_HLT	, ~i8 & (
-							       (~i4 &  i2 & ~i1) 	|
-							       ( i4 & ~i2 &  i1) )	);
+		setCtrlSig(CS_XI	, ~i1 & (
+								  ( ~i8 & ~i4 &  i2 ) 	|	
+								  (  i8 &  i4 & ~i2 ) ) );
+		setCtrlSig(CS_HLT	,(~i8 & ~i4 &  i2 & ~i1)	|
+							 (~i8 &  i4 & ~i2 &  i1)	|
+							 ( i8 &  i4 & ~i2 & ~i1)	);
 		setCtrlSig(CS_RIL 	, ~i8 &  i4 & ~i2 &  i1 	);
+		setCtrlSig(CS_AD 	,( i8 &  i4 & ~i2 & ~i1 ) 	|
+							 ( i8 & ~i4 & ~i2 & ~i1 )	);
+		setCtrlSig(CS_CI 	,( i8 & ~i4 & ~i2 & ~i1 )	);
 	}
 
-	if (controlSignals & CS_CO) 	dataBus |= prgrmCtr;
+	if (controlSignals & CS_CO) 	dataBus 		|= prgrmCtr;
 	
-	if (controlSignals & CS_ROL)	memInternalBus |= RAM[memAddrReg << 1];
-	if (controlSignals & CS_RO) 	dataBus |= (RAM[(memAddrReg << 1) + 1] << 8) + (memLowerBuf << 0);
-	if (controlSignals & CS_RIL)	memInternalBus |= memLowerBuf;
+	if (controlSignals & CS_ROL)	memInternalBus 	|= RAM[memAddrReg << 1];
+	if (controlSignals & CS_RO) 	dataBus 		|= (RAM[(memAddrReg << 1) + 1] << 8) + (memLowerBuf << 0);
+	if (controlSignals & CS_RIL)	memInternalBus 	|= memLowerBuf;
 
-	if (controlSignals & CS_IO)		dataBus |= ri.imm;
+	if (controlSignals & CS_IO)		dataBus 		|= ri.imm;
 	
 	if (controlSignals & CS_XO) {
-		regInternalOutBus 	=  rgs[rr.rgx];
-		dataBus 			|= regInternalOutBus;
+		if (rr.rgx == 0)
+			regInternalOutBus 						=  0;
+		else
+			regInternalOutBus 						=  rgs[rr.rgx];
+		dataBus 									|= regInternalOutBus;
 	}
+	
 	if (controlSignals & CS_YO) {
-		regInternalOutBus 	=  rgs[rr.rgy];
-		dataBus 			|= regInternalOutBus;
+		if (rr.rgy == 0)
+			regInternalOutBus 						=  0;
+		else
+			regInternalOutBus 						=  rgs[rr.rgy];
+		dataBus 									|= regInternalOutBus;
 	}
+
+	if (controlSignals & CS_AD)		dataBus 		|= rgx + rgy;
 }
 
 void RISC::clockRisingEdge() {
-	if (controlSignals & CS_ROL)	memLowerBuf = memInternalBus;
+	if (controlSignals & CS_CI) 	prgrmCtr 	= dataBus;
+	if (controlSignals & CS_ROL)	memLowerBuf	= memInternalBus;
 	if (controlSignals & CS_RI) {
-		RAM[(memAddrReg << 1) + 1] = dataBus >> 8;
-		memLowerBuf = dataBus & 0x00FF;
+		RAM[(memAddrReg << 1) + 1] 				= dataBus >> 8;
+		memLowerBuf 							= dataBus & 0x00FF;
 	}
 	if (controlSignals & CS_RIL) {
-		RAM[(memAddrReg << 1) + 0] = memLowerBuf;
+		RAM[(memAddrReg << 1) + 0] 				= memLowerBuf;
 	}
 	if (controlSignals & CS_MI) 	memAddrReg 	= dataBus;
 	
@@ -152,16 +162,23 @@ void RISC::clockRisingEdge() {
 	if (controlSignals & CS_CE) 	++prgrmCtr;
 	
 	if (controlSignals & CS_XI)	{
-		regInternalInBus 	= dataBus;
-		rgs[rr.rgx] 		= regInternalInBus;
+		regInternalInBus 						= dataBus;
+		if (rr.rgx != 0)
+			rgs[rr.rgx] 						= regInternalInBus;
 	}
 
 	if (controlSignals & CS_YI)	{
-		regInternalInBus 	= dataBus;
-		rgs[rr.rgy] 		= regInternalInBus;
+		regInternalInBus 						= dataBus;
+		if (rr.rgy != 0)
+			rgs[rr.rgy] 						= regInternalInBus;
 	}
 
-	if (~(controlSignals & CS_HLT)) instrCtr <<= 0x1;
-	if (instrCtr == IC_END)			instrCtr = IC_0;
-	if (controlSignals & CS_HLT)	instrCtr = IC_0;
+	if (controlSignals & CS_AX) 	rgx 		= dataBus;
+	if (controlSignals & CS_AY)		rgy			= dataBus;
+
+	if (~(controlSignals & CS_HLT)) instrCtr 	<<= 0x1;
+	if (instrCtr == IC_END)			instrCtr 	= IC_0;
+	if (controlSignals & CS_HLT)	instrCtr 	= IC_0;
+
+	/** AUTO UPDATE */ 				alu 		= rgx + rgy; 
 }

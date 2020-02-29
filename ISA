@@ -26,7 +26,7 @@ LDI 	RI 		Loads into register X an immediate value
 MOV 	RR 		Moves data from rY to rX
 
 STI 	RI 		Stores an immediate into the address stored in rA
-STO 	RR 		Stores the contents of rB into the memory address in rA
+STO 	RR 		Stores the contents of rA into the memory address in rB
 
 ADD 	RR 		Adds register A to B and stores result in A
 ADI 	RI 		Adds register A to the immediate and stores in A
@@ -69,7 +69,7 @@ LN 	ALU nand
 
 All instructions preceded by:
 
-I0		I1			I3
+I0		I1			I2
 CO|MI	ROL|CO 		RO|II
 
 OP		I3			I4			I5
@@ -90,7 +90,7 @@ JPC: 	XO|AX|**	IO|AY		AD|CI
 JMP: 	XO|AX		IO|AY		AD|CI
 
 ADD: 	XO|AX 		YO|AY		AD|XI
-SUB: 	XO|AX 		YO|AY 		AU|XI
+SUB: 	XO|AX 		YO|AY 		AD|SU|XI
 XOR:  	XO|AX 		YO|AY 		LX|XI
 NND: 	XO|AX 		YO|AY 		LN|XI
 
@@ -113,32 +113,15 @@ AX and AY have same conditions
 0110	ADI SBI
 0111	ADI SBI
 
-1000	JPZ JPC JMP
-1001	JPZ JPC JMP
-1010	JPZ JPC JMP
-1011	JPZ JPC JMP
+1000	JMP
+1001	JPZ JPC
+1010	JPZ JPC
+1011	JPZ JPC
 
-1100	ADD SUB XOR NND
-1101	ADD SUB XOR NND
-1110	ADD SUB XOR NND
-1111	ADD SUB XOR NND
-
-XO: 	8 OR 4	 								AND I2
-AX:		4 AND 2 OR 8	 						AND I2
-AY: 	4 AND 2 OR 8	 						AND I3
-YO: 	4 AND (8 OR ~2 AND ~1) 					AND I3
-		~8 AND ~4 AND ~2 AND 1					AND I2 *
-XI: 	4 AND (8 OR 2) 							AND I4
-		~8 AND ~4 AND 1 						AND I2
-		~8 AND ~4 AND ~2 AND 1 					AND I3 *
-IR:		~8 AND ~4 AND ~2 AND ~1 				AND I2
-		~8 AND ~4 AND 1							AND I3
-		~8 AND (~4 AND 2 AND ~1 OR 4 AND ~2) 	AND I4
-IO:		~8 AND ~4 AND 2 						AND I2
-		~8 AND 4 AND (2 OR 1) OR 8 AND ~4 		AND I3
-MI: 	~8 AND (~4 AND 2 AND ~1 OR 4 AND ~2) 	AND I2
-RO:		~8 AND ~4 AND 2 AND ~1 					AND I3
-RI:		~8 AND 4 AND ~2							AND I3
+1100	ADD 
+1101	SUB XOR NND
+1110	SUB XOR NND
+1111	SUB XOR NND
 
 
 * Could be improved at the sacrifice of subtick by moving the XI instruction to I3 in MOV and LDI
